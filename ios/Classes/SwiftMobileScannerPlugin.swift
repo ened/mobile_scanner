@@ -118,9 +118,31 @@ public class SwiftMobileScannerPlugin: NSObject, FlutterPlugin {
 
         let position = facing == 0 ? AVCaptureDevice.Position.front : .back
         let detectionSpeed: DetectionSpeed = DetectionSpeed(rawValue: speed)!
+        
+        let deviceTypes : Array<String> = (call.arguments as! Dictionary<String, Any?>)["deviceTypes"] as? Array ?? []
+        let deviceTypeList = deviceTypes.map { type in
+            switch(type) {
+            case "wideAngleCamera":
+                return AVCaptureDevice.DeviceType.builtInWideAngleCamera
+            case "telephotoCamera":
+                return AVCaptureDevice.DeviceType.builtInTelephotoCamera
+            case "ultraWideCamera":
+                return AVCaptureDevice.DeviceType.builtInUltraWideCamera
+            case "dualCamera":
+                return AVCaptureDevice.DeviceType.builtInDualCamera
+            case "dualWideCamera":
+                return AVCaptureDevice.DeviceType.builtInDualWideCamera
+            case "tripleCamera":
+                return AVCaptureDevice.DeviceType.builtInTripleCamera
+            case "trueDepthCamera":
+                return AVCaptureDevice.DeviceType.builtInTrueDepthCamera
+            default:
+                fatalError("unsupported")
+            }
+        }
 
         do {
-            try mobileScanner.start(barcodeScannerOptions: barcodeOptions, returnImage: returnImage, cameraPosition: position, torch: torch ? .on : .off, detectionSpeed: detectionSpeed) { parameters in
+            try mobileScanner.start(barcodeScannerOptions: barcodeOptions, returnImage: returnImage, cameraPosition: position, torch: torch ? .on : .off, detectionSpeed: detectionSpeed, deviceTypes: deviceTypeList) { parameters in
                 result(["textureId": parameters.textureId, "size": ["width": parameters.width, "height": parameters.height], "torchable": parameters.hasTorch])
             }
         } catch MobileScannerError.alreadyStarted {

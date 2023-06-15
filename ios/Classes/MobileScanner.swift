@@ -120,7 +120,7 @@ public class MobileScanner: NSObject, AVCaptureVideoDataOutputSampleBufferDelega
     }
 
     /// Start scanning for barcodes
-    func start(barcodeScannerOptions: BarcodeScannerOptions?, returnImage: Bool, cameraPosition: AVCaptureDevice.Position, torch: AVCaptureDevice.TorchMode, detectionSpeed: DetectionSpeed, completion: @escaping (MobileScannerStartParameters) -> ()) throws {
+    func start(barcodeScannerOptions: BarcodeScannerOptions?, returnImage: Bool, cameraPosition: AVCaptureDevice.Position, torch: AVCaptureDevice.TorchMode, detectionSpeed: DetectionSpeed, deviceTypes: [AVCaptureDevice.DeviceType], completion: @escaping (MobileScannerStartParameters) -> ()) throws {
         self.detectionSpeed = detectionSpeed
         if (device != nil) {
             throw MobileScannerError.alreadyStarted
@@ -132,14 +132,19 @@ public class MobileScanner: NSObject, AVCaptureVideoDataOutputSampleBufferDelega
 
         // Open the camera device
         if #available(iOS 13.0, *) {
-            device = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTripleCamera, .builtInDualWideCamera, .builtInDualCamera, .builtInWideAngleCamera], mediaType: .video, position: cameraPosition).devices.first
+            print("device types requested: \(deviceTypes)")
+            device = AVCaptureDevice.DiscoverySession(deviceTypes: deviceTypes.isEmpty ? [
+                .builtInTripleCamera, .builtInDualWideCamera, .builtInDualCamera, .builtInWideAngleCamera
+            ] : deviceTypes, mediaType: .video, position: cameraPosition).devices.first
         } else {
             device = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInDualCamera, .builtInWideAngleCamera], mediaType: .video, position: cameraPosition).devices.first
         }
-
+        
         if (device == nil) {
             throw MobileScannerError.noCamera
         }
+
+        print("device detected: \(device.deviceType)")
 
         device.addObserver(self, forKeyPath: #keyPath(AVCaptureDevice.torchMode), options: .new, context: nil)
         device.addObserver(self, forKeyPath: #keyPath(AVCaptureDevice.videoZoomFactor), options: .new, context: nil)

@@ -18,6 +18,7 @@ class MobileScannerController {
     this.torchEnabled = false,
     this.formats,
     this.returnImage = false,
+    this.iosCameraDeviceTypes,
     @Deprecated(
       'Instead, use the result of calling `start()` to determine if permissions were granted.',
     )
@@ -42,6 +43,9 @@ class MobileScannerController {
 
   /// If provided, the scanner will only detect those specific formats
   final List<BarcodeFormat>? formats;
+
+  /// If provided, the scanner will only consider the provided camera types on iOS.
+  final List<IosCameraDeviceType>? iosCameraDeviceTypes;
 
   /// Sets the speed of detections.
   ///
@@ -135,6 +139,12 @@ class MobileScannerController {
         arguments['formats'] = formats!.map((e) => e.index).toList();
       }
     }
+
+    if (Platform.isIOS && iosCameraDeviceTypes != null) {
+      arguments['deviceTypes'] =
+          iosCameraDeviceTypes!.map((e) => e.name).toList();
+    }
+
     arguments['returnImage'] = returnImage;
     return arguments;
   }
